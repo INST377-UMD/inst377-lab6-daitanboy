@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Map of US</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 500px;
+    }
+    .marker-info {
+      font-weight: bold; 
+    }
+  </style>
+</head>
+<body>
+
+<h1>Map of US</h1>
+<div id="map"></div>
+<div id="marker-1" class="marker-info">Marker 1: Loading...</div>
+<div id="marker-2" class="marker-info">Marker 2: Loading...</div>
+<div id="marker-3" class="marker-info">Marker 3: Loading...</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([37.0902, -95.7129], 4);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  function getRandomInRange(from, to, fixed) {
+    return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
+  }
+
+  const markers = [
+    { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) },
+    { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) },
+    { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) }
+  ];
+
+  markers.forEach((marker, index) => {
+    L.marker([marker.lat, marker.lng]).addTo(map)
+      .bindPopup(`Marker ${index + 1}<br>Latitude: ${marker.lat}, Longitude: ${marker.lng}`)
+      .openPopup();
+
+    fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${marker.lat}&longitude=${marker.lng}&localityLanguage=en`)
+      .then(response => response.json())
+      .then(data => {
+        const locality = data.locality || "Unknown"; // Get locality name
+        document.getElementById(`marker-${index + 1}`).innerHTML = `Marker ${index + 1}: Latitude: ${marker.lat}, Longitude: ${marker.lng}<br>Locality: ${locality}`;
+      })
+      .catch(error => console.error("Error fetching locality:", error));
+  });
+</script>
+
+</body>
+</html>
